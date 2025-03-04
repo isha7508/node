@@ -38,3 +38,15 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.getUserByEmail = async (req, res) => {
+  const { email } = req.params; // Get email from request parameters
+  try {
+    const user = await User.findOne({ email }).select('-password'); // Exclude password field
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
