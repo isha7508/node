@@ -2,10 +2,17 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
+const { validateUser } = require('../models/User'); // Import the validation function
 
 exports.register = async (req, res) => {
   const { name, email, password } = req.body;
+
+  // Validate user input
+  const { error } = validateUser({ name, email, password });
+  if (error) {
+    return res.status(400).json({ message: error.details[0].message });
+  }
+
   try {
     let user = await User.findOne({ email });
     if (user) {
@@ -38,6 +45,7 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+/**user  */
 exports.getUserByEmail = async (req, res) => {
   const { email } = req.params; // Get email from request parameters
   try {
@@ -51,7 +59,20 @@ exports.getUserByEmail = async (req, res) => {
   }
 };
 
-/**user Update Password */
+/**Profile  */
+exports.profile = async (req, res) => {
+  try {
+    // req.user is set by authMiddleware. We can now fetch full user details from the database.
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 /*** Update Password */
 exports.updatePassword = async (req, res) => {
   try {
