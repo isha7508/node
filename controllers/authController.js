@@ -50,3 +50,53 @@ exports.getUserByEmail = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+/**user Update Password */
+/*** Update Password */
+exports.updatePassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body; // Get email and newPassword from the request body
+
+    // Check if the user exists by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+/*** Delete User */
+exports.deleteUser = async (req, res) => {
+  try {
+    const { email } = req.body; // Extract email from the request body
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    // Find and delete the user by email
+    const user = await User.findOneAndDelete({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
